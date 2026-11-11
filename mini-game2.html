@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack a Mole</title>
+    <style>
+        body { font-family: Arial; text-align: center; background: #1e293b; color: white; }
+        #board { display: grid; grid-template-columns: repeat(3, 90px); gap: 10px; justify-content: center; margin: 20px; }
+        .hole { width: 90px; height: 90px; border-radius: 50%; background: #475569; font-size: 45px; line-height: 90px; cursor: pointer; -webkit-user-select: none; user-select: none; }
+        button { padding: 10px 25px; font-size: 16px; }
+    </style>
+</head>
+<body>
+  <h1>🔨 Whack a Mole</h1>
+  <p>Time: <span id="time">30</span>s | Score: <span id="score">0</span> | Best: <span id="best">0</span></p>
+  <div id="board"></div>
+  <button onclick="startGame()">Start Game</button>
+  <h3 id="message"></h3>
+
+  <script>
+    const board = document.getElementById("board");
+    let score = 0, time = 30, active = -1;
+    let moleTimer, countTimer;
+    let best = Number(localStorage.getItem("best")) || 0;   // saved high score
+    document.getElementById("best").textContent = best;
+
+    // create 9 holes
+    for (let i = 0; i < 9; i++) {
+      const hole = document.createElement("div");
+      hole.className = "hole";
+      hole.onclick = () => hit(i);
+      board.appendChild(hole);
+    }
+    const holes = document.querySelectorAll(".hole");
+
+    function clearHoles() {
+      holes.forEach(h => h.textContent = "");
+    }
+
+    function showMole() {
+      clearHoles();
+      active = Math.floor(Math.random() * 9);
+      holes[active].textContent = "🐹";
+    }
+
+    function hit(i) {
+      if (i === active) {
+        score++;
+        active = -1;
+        clearHoles();
+        holes[i].textContent = "💥";
+        document.getElementById("score").textContent = score;
+      }
+    }
+
+    function startGame() {
+      clearInterval(moleTimer);
+      clearInterval(countTimer);
+      score = 0;
+      time = 30;
+      document.getElementById("score").textContent = 0;
+      document.getElementById("time").textContent = 30;
+      document.getElementById("message").textContent = "";
+
+      moleTimer = setInterval(showMole, 700);
+      countTimer = setInterval(() => {
+        time--;
+        document.getElementById("time").textContent = time;
+        if (time === 0) endGame();
+      }, 1000);
+    }
+
+    function endGame() {
+      clearInterval(moleTimer);
+      clearInterval(countTimer);
+      clearHoles();
+      active = -1;
+
+      let msg = "Game Over! Score: " + score;
+      if (score > best) {
+        best = score;
+        localStorage.setItem("best", best);
+        document.getElementById("best").textContent = best;
+        msg += " 🎉 New High Score!";
+      }
+      document.getElementById("message").textContent = msg;
+    }
+  </script>
+</body>
+</html>
